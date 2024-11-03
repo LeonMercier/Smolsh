@@ -6,7 +6,7 @@
 /*   By: lemercie <lemercie@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 15:27:49 by lemercie          #+#    #+#             */
-/*   Updated: 2024/10/23 12:25:55 by lemercie         ###   ########.fr       */
+/*   Updated: 2024/11/03 11:45:44 by leon             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,13 +126,13 @@ char	*expand_vars(char *token, t_env *env)
 			if (!varname)
 				return (expand_vars_fail(ret, varname));
 			value = ft_env_get_value_by_key(varname, env);
-			free(varname);
 			if (value)
 			{
 				ret = ft_strjoin(ret, value);
 				if (!ret)
 					return (expand_vars_fail(ret, varname));
 			}
+			free(varname);
 			end = skip_varname(end);
 		}
 		else if (*end == '\'')
