@@ -6,7 +6,7 @@
 /*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 15:27:49 by lemercie          #+#    #+#             */
-/*   Updated: 2025/07/05 12:28:49 by lemercie         ###   ########.fr       */
+/*   Updated: 2025/07/05 12:39:47 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,25 +103,10 @@ static char	*var_expander(char *token, t_var_expander extra_args)
 			return (free_strs(&ret, NULL));
 		if (*end == '$')
 		{
-<<<<<<< HEAD
-			varname = get_varname(end + 1);
-			if (!varname)
-				return (expand_vars_fail(ret, varname));
-			value = ft_env_get_value_by_key(varname, env);
-			if (value)
-			{
-				ret = ft_strjoin(ret, value);
-				if (!ret)
-					return (expand_vars_fail(ret, varname));
-			}
-			free(varname);
-			end = skip_varname(end);
-=======
 			extra_args.in_dquote = false;
 			flag = reached_dollar(&token, &end, &ret, extra_args);
 			if (flag < 0)
 				return (free_strs(&ret, NULL));
->>>>>>> 41364ccea15caa07d07f0bb201d1850d98e1f96d
 		}
 		else if (*end == '\'' && reached_single_quote(&end, &ret) < 0)
 			return (free_strs(&ret, NULL));

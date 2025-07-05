@@ -6,12 +6,13 @@
 /*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 13:31:14 by lemercie          #+#    #+#             */
-/*   Updated: 2024/12/11 14:36:39 by mrahmat-         ###   ########.fr       */
+/*   Updated: 2025/07/05 12:40:10 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
+# include <stdio.h>
 # include <readline/readline.h>
 # include <readline/history.h>
 # include <stdbool.h> // bool type
