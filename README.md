@@ -23,7 +23,7 @@ The goal of this project is to learn how a unix shell works in a deeper level, h
 We were limited to use only the following library functions:\
 `readline`, `rl_clear_history`, `rl_on_new_line`, `rl_replace_line`, `rl_redisplay`, `add_history`, `malloc`, `free`, `write`, `access`, `open`, `read`, `close`, `fork`, `waitpid`, `sigaction`, `sigemptyset`, `exit`, `getcwd`, `chdir`, `stat`, `lstat`, `unlink`, `execve`, `dup2`, `pipe`, `strerror` and `perror`.
 
-We were allowed to use Libft functions, that we had written in the start of the cursus, more information about that [here.](https://github.com/LeonMercier/libft_plus).
+We were allowed to use Libft functions, that we had written in the start of the cursus, more information about that [here.](https://github.com/LeonMercier/libft_plus)
 
 Since this was the first group project in the cursus, we learned how to use git for collaboration (branching, reviewing, merging etc.). We also learned to write the code in a more readable way, so that collaborating would be as efficient as possible.
 
