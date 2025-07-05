@@ -6,7 +6,7 @@
 /*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 12:20:32 by mrahmat-          #+#    #+#             */
-/*   Updated: 2024/10/22 11:37:48 by mrahmat-         ###   ########.fr       */
+/*   Updated: 2024/12/11 14:46:50 by mrahmat-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,12 @@ int	pwd(int fd)
 {
 	char	*res;
 
-	res = malloc(PATH_MAX * sizeof(char));
+	res = get_pwd();
 	if (res == NULL)
-		return (0);
-	getcwd(res, PATH_MAX);
-	if (errno != 0)
 	{
-		free(res);
-		return (print_builtin_error("pwd", NULL, NULL, false));
+		if (errno != 0)
+			return (print_builtin_error("pwd", NULL, NULL, false));
+		return (1);
 	}
 	ft_putendl_fd(res, fd);
 	free(res);
@@ -32,31 +30,39 @@ int	pwd(int fd)
 
 int	cd(char **cmd, t_env **envp)
 {
-	chdir(*cmd);
-	if (errno != 0)
-		return (print_builtin_error("cd", *cmd, NULL, false));
-	update_pwd(envp);
+	if (cmd[0] != NULL)
+	{
+		if (cmd[1] != NULL)
+			return (print_builtin_error("cd", NULL, \
+				"too many arguments", false));
+		if (chdir(*cmd) == -1)
+		{
+			if (errno != 0)
+				return (print_builtin_error("cd", *cmd, NULL, false));
+		}
+		update_pwd(envp);
+	}
 	return (0);
 }
 
-int	builtin_exit(char **cmd, t_env **envp)
+int	builtin_exit(t_list **cmd_table, t_env **envp, int last_ret_val)
 {
-	int	ret_val;
+	long long		ret_val;
+	char			**cmd;
+	int				check;
 
-	ft_putendl_fd(*cmd, 2);
-	ret_val = 0;
+	cmd = ((t_cmd *)(*cmd_table)->content)->cmd_args;
 	if (cmd[1] != NULL)
-	{
-		if (validate_str(cmd[1], "0123456789") == -1)
-		{
-			print_builtin_error("exit", cmd[1], "numeric argument required", \
-				false);
-			ret_val = 2;
-		}
-		else
-			ret_val = ft_atoi(cmd[1]);
-	}
+		check = 1;
+	else
+		check = 0;
+	ft_putendl_fd(*cmd, 2);
+	ret_val = exit_error_check(cmd);
 	ft_envclear(envp, &free);
+	ft_lstclear(cmd_table, &destroy_tlist_of_tcmd);
+	rl_clear_history();
+	if (check == 0)
+		exit(last_ret_val);
 	exit(ret_val);
 }
 
@@ -86,21 +92,30 @@ bool	test_builtin_cmd(char *cmd)
 	return (ret);
 }
 
-int	check_builtin_cmd(char **cmd, int fd, t_env **envp)
+int	check_builtin_cmd(t_list **cmd_table, t_env **envp, int last_ret_val)
 {
+	char	**cmd;
+	int		fd;
+	int		ret_val;
+
+	ret_val = -1;
+	cmd = ((t_cmd *)(*cmd_table)->content)->cmd_args;
+	fd = ((t_cmd *)(*cmd_table)->content)->fd.outfile;
 	if (ft_strncmp(*cmd, "pwd", 4) == 0)
-		return (pwd(fd));
+		ret_val = pwd(fd);
 	else if (ft_strncmp("cd", *cmd, 3) == 0)
-		return (cd(cmd + 1, envp));
+		ret_val = cd(cmd + 1, envp);
 	else if (ft_strncmp(*cmd, "echo", 5) == 0)
-		return (echo(cmd + 1, fd));
+		ret_val = echo(cmd + 1, fd);
 	else if (ft_strncmp(*cmd, "exit", 5) == 0)
-		return (builtin_exit(cmd, envp));
+		ret_val = builtin_exit(cmd_table, envp, last_ret_val);
 	else if (ft_strncmp(*cmd, "env", 4) == 0)
-		return (env(cmd, fd, envp));
+		ret_val = env(cmd, fd, envp);
 	else if (ft_strncmp(*cmd, "unset", 6) == 0)
-		return (unset(cmd + 1, envp));
+		ret_val = unset(cmd + 1, envp);
 	else if (ft_strncmp(*cmd, "export", 7) == 0)
-		return (export(cmd, fd, envp));
-	return (-1);
+		ret_val = export(cmd, fd, envp);
+	if (ret_val >= 0)
+		close_cmd_fd((*cmd_table)->content);
+	return (ret_val);
 }

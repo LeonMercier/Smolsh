@@ -3,89 +3,82 @@
 /*                                                        :::      ::::::::   */
 /*   expand_vars.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lemercie <lemercie@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 15:27:49 by lemercie          #+#    #+#             */
-/*   Updated: 2024/11/03 11:45:44 by leon             ###   ########.fr       */
+/*   Updated: 2025/07/05 12:28:49 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-char	*ft_strndup(const char *s1, size_t len)
+// return -1 on malloc fail
+// return 1 ==> use continue in caller
+static int	reached_dollar(
+	char **start, char **end, char **ret, t_var_expander extra_args)
 {
-	char			*s2;
-	unsigned int	i;
+	char	*varname;
+	int		flag;
 
-	i = 0;
-	s2 = (char *)malloc(len * sizeof(char) + 1);
-	if (s2 == NULL)
-		return (NULL);
-	i = 0;
-	while (i < len && s1[i] != '\0')
-	{
-		s2[i] = s1[i];
-		i++;
-	}
-	s2[i] = '\0';
-	return (s2);
+	if (!is_varname(*((*end) + 1)))
+		return (not_varname(start, end, ret, extra_args.in_dquote));
+	varname = get_varname((*end) + 1);
+	if (!varname)
+		return (free_strs_int(ret, &varname));
+	if (ft_strcmp(varname, "?") == 0)
+		flag = process_questionmark(end, ret, extra_args);
+	else
+		flag = process_env_var(end, ret, varname, extra_args);
+	if (flag < 0 || !*ret)
+		return (free_strs_int(ret, &varname));
+	free(varname);
+	return (0);
 }
 
-// return pointer to the last char copied from src
-// replace dst
-// NULL pointer is returned in case of malloc() failure in ft_strndup() or 
-// ft_strjoin()
-char	*concatenate_until(char **dst, char *src, char *delim)
+static int	reached_single_quote(char **end, char **ret)
 {
-	char	*src_end;
 	char	*temp;
-	char	*temp_joined;
 
-//	printf("concat delims %c - %c\n", delim[0], delim[1]);
-	src_end = src;
-	while (*src_end && !ft_strchr(delim, *src_end))
+	temp = *ret;
+	*ret = ft_strjoin(*ret, "'");
+	if (temp)
+		free(temp);
+	if (!*ret)
+		return (-1);
+	*end = concatenate_until(ret, (*end), "'");
+	if (!*end)
+		return (-1);
+	return (0);
+}
+
+static int	reached_d_quote(char **end, char **ret, \
+								t_var_expander extra_args)
+{
+	char	*start;
+
+	extra_args.in_dquote = true;
+	(*end)++;
+	if (ft_strjoin_free(ret, "\"", false) > 0)
+		return (-1);
+	start = *end;
+	while (*start)
 	{
-		src_end++;
+		*end = concatenate_until(ret, start, "$\"");
+		if (!end || !ret || (**end == '$' && reached_dollar(
+					&start, end, ret, extra_args) < 0))
+			return (-1);
+		else if (**end == '\"')
+		{
+			(*end)++;
+			if (ft_strjoin_free(ret, "\"", false) > 0)
+				return (-1);
+			return (0);
+		}
+		start = *end;
 	}
-	temp = ft_strndup(src, substr_len(src, src_end));
-	if (!temp)
-		return (NULL);
-	temp_joined = ft_strjoin(*dst, temp);
-	if (!temp_joined)
-		return (NULL);
-	*dst = temp_joined;
-	return (src_end);
-}
-
-char	*skip_varname(char *s)
-{
-	if (!s)
-		return (NULL);
-	if (*s == '$')
-		s++;
-	while (ft_isalnum(*s) || *s == '_')
-	{
-		s++;
-	}
-	return (s);
-}
-
-char	*get_varname(char *start)
-{
-	char	*end;
-
-	end = skip_varname(start);
-	return (strndup(start, substr_len(start, end)));
-}
-
-// returns NULL so that it can be used inside of a return statement
-void	*expand_vars_fail(char *s1, char *s2)
-{
-	if (s1)
-		free(s1);
-	if (s2)
-		free(s2);
-	return (NULL);
+	if (**end)
+		(*end)++;
+	return (0);
 }
 
 // join until $ or single quote (that is not inside of doubles)
@@ -96,32 +89,21 @@ void	*expand_vars_fail(char *s1, char *s2)
 // $VAR in env
 // token is NOT freed here because it is contained in a list node in the caller
 // returns NULL in case of malloc fails
-char	*expand_vars(char *token, t_env *env)
+static char	*var_expander(char *token, t_var_expander extra_args)
 {
 	char	*ret;
-	char	*start;
 	char	*end;
-	char	*varname;
-	char	*value;
+	int		flag;
 
-	if (!token)
-		return (NULL);
-	start = token;
-	end = token;
 	ret = NULL;
-	varname = NULL;
-	while (*start)
+	while (*token)
 	{
-		end = concatenate_until(&ret, start, "$'");
-		if (!end)
-			return (expand_vars_fail(ret, varname));
-		if (!ret)
-		{
-			printf("expand_vars() returning NULL\n");
-			return (expand_vars_fail(ret, varname));
-		}
+		end = concatenate_until(&ret, token, "$'\"");
+		if (!end || !ret)
+			return (free_strs(&ret, NULL));
 		if (*end == '$')
 		{
+<<<<<<< HEAD
 			varname = get_varname(end + 1);
 			if (!varname)
 				return (expand_vars_fail(ret, varname));
@@ -134,18 +116,32 @@ char	*expand_vars(char *token, t_env *env)
 			}
 			free(varname);
 			end = skip_varname(end);
+=======
+			extra_args.in_dquote = false;
+			flag = reached_dollar(&token, &end, &ret, extra_args);
+			if (flag < 0)
+				return (free_strs(&ret, NULL));
+>>>>>>> 41364ccea15caa07d07f0bb201d1850d98e1f96d
 		}
-		else if (*end == '\'')
-		{
-			end++;
-			start = end;
-			end = concatenate_until(&ret, start, "'");
-			if (!end)
-				return (expand_vars_fail(ret, varname));
-		}
-		start = end;
+		else if (*end == '\'' && reached_single_quote(&end, &ret) < 0)
+			return (free_strs(&ret, NULL));
+		else if (*end == '\"' && reached_d_quote(&end, &ret, extra_args) < 0)
+			return (free_strs(&ret, NULL));
+		token = end;
 	}
-	if (ft_strlen(ret) <= 0)
-		printf("expand_vars() returning empty string\n");
 	return (ret);
+}
+
+char	*expand_vars(char *token, t_env *env, int *last_ret_val)
+{
+	t_var_expander	extra_args;
+
+	extra_args.env = env;
+	extra_args.last_ret_val = last_ret_val;
+	if (!token)
+		return (NULL);
+	else if (ft_strlen(token) == 0)
+		return (ft_strdup(token));
+	else
+		return (var_expander(token, extra_args));
 }

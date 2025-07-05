@@ -6,7 +6,7 @@
 /*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 18:32:17 by mrahmat-          #+#    #+#             */
-/*   Updated: 2024/10/16 12:35:41 by mrahmat-         ###   ########.fr       */
+/*   Updated: 2024/12/11 14:46:58 by mrahmat-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,9 @@ void	update_pwd(t_env **envp)
 	char	*res;
 	char	*old_pwd;
 
-	res = malloc(PATH_MAX * sizeof(char));
+	res = get_pwd();
 	if (res == NULL)
 		return ;
-	getcwd(res, PATH_MAX);
 	old_pwd = NULL;
 	list_iter = *envp;
 	while (list_iter != NULL)
@@ -73,23 +72,6 @@ size_t	ft_strlen_eq(char *str)
 	return (eq);
 }
 
-bool	check_key(char *cmd, t_env *node)
-{
-	size_t	occ_cmd;
-	bool	match;
-
-	occ_cmd = 0;
-	while (cmd[occ_cmd] != '=' && cmd[occ_cmd] != '\0')
-		occ_cmd++;
-	if (occ_cmd != ft_strlen(node->key))
-		return (true);
-	if (ft_strncmp(cmd, node->key, ft_strlen(node->key)) == 0)
-		match = false;
-	else
-		match = true;
-	return (match);
-}
-
 size_t	get_cmd_amount(char **cmd)
 {
 	size_t	amount;
@@ -98,4 +80,19 @@ size_t	get_cmd_amount(char **cmd)
 	while (*(cmd + amount) != NULL)
 		amount++;
 	return (amount);
+}
+
+char	*get_pwd(void)
+{
+	char	*res;
+
+	res = malloc(PATH_MAX * sizeof(char));
+	if (res == NULL)
+		return (NULL);
+	if (getcwd(res, PATH_MAX) == NULL)
+	{
+		free(res);
+		return (NULL);
+	}
+	return (res);
 }

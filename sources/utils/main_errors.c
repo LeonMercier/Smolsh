@@ -1,23 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.c                                       :+:      :+:    :+:   */
+/*   main_errors.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: lemercie <lemercie@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/27 13:57:01 by lemercie          #+#    #+#             */
-/*   Updated: 2024/11/14 18:37:12 by mrahmat-         ###   ########.fr       */
+/*   Created: 2024/11/29 16:38:26 by lemercie          #+#    #+#             */
+/*   Updated: 2024/11/29 16:39:06 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./minishell.h"
+#include "minishell.h"
 
-void	close_all(t_files files, int pipefd[2])
+void	line_has_syntax_error(char *line, int *last_ret_val)
 {
-	if (files.infile > -1)
-		close(files.infile);
-	if (files.outfile > -1)
-		close(files.outfile);
-	close(pipefd[0]);
-	close(pipefd[1]);
+	*last_ret_val = 2;
+	add_history(line);
+	free(line);
 }

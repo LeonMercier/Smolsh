@@ -6,30 +6,36 @@
 /*   By: lemercie <lemercie@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:59:45 by lemercie          #+#    #+#             */
-/*   Updated: 2024/10/21 12:05:54 by lemercie         ###   ########.fr       */
+/*   Updated: 2024/12/05 17:51:02 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-void	ft_lstdel_and_connect(t_list **head, t_list **node)
+void	ft_lstdel_and_connect(t_list **head, t_list **to_del)
 {
-	t_list	*node_before;
-	t_list	*node_after;
+	t_list	*temp;
 
-	node_before = *head;
-	if (node_before == *node)
+	if (!*head || !*to_del)
+		return ;
+	if (!(*head)->next)
 	{
-		node_before = node_before->next;
-		ft_lstdelone(*node, &free);
-		*head = node_before;
-		*node = node_before;
+		ft_lstdelone(*head, &free);
+		*head = NULL;
+		*to_del = *head;
 		return ;
 	}
-	while (node_before->next != *node && node_before != NULL)
-		node_before = node_before->next;
-	node_after = (*node)->next;
-	node_before->next = node_after;
-	ft_lstdelone(*node, &free);
-	*node = node_before;
+	temp = *head;
+	if (*head == *to_del)
+	{
+		*head = temp->next;
+		*to_del = temp->next;
+		ft_lstdelone(temp, &free);
+		return ;
+	}
+	while (temp != NULL && temp->next != *to_del)
+		temp = temp->next;
+	temp->next = (*to_del)->next;
+	ft_lstdelone(*to_del, &free);
+	*to_del = temp;
 }

@@ -6,7 +6,7 @@
 /*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 11:46:02 by mrahmat-          #+#    #+#             */
-/*   Updated: 2024/10/16 14:12:58 by mrahmat-         ###   ########.fr       */
+/*   Updated: 2024/11/22 16:46:54 by mrahmat-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,17 +29,23 @@ int	print_builtin_error(char *cmd, char *arg, char *err, bool alloc)
 	if (alloc == true)
 		free(arg);
 	errno = 0;
-	return (0);
+	return (1);
 }
 
-t_env	*print_export_error(char **variable)
+t_env	*print_export_error(char **variable, bool alloc)
 {
+	if (*variable == NULL)
+		return (NULL);
 	ft_putstr_fd("minishell: export: ", 2);
 	ft_putchar_fd('`', 2);
-	ft_putstr_fd(*variable, 2);
+	if (*variable[0] == '\0')
+		ft_putstr_fd("=", 2);
+	else
+		ft_putstr_fd(*variable, 2);
 	ft_putstr_fd("\'", 2);
 	ft_putstr_fd(": not a valid identifier\n", 2);
-	free(*variable);
+	if (alloc)
+		free(*variable);
 	return (NULL);
 }
 
@@ -65,4 +71,43 @@ int	validate_str(char *str, char *acc_values)
 		s_i++;
 	}
 	return (1);
+}
+
+int	is_overflown(char *str)
+{
+	long long	nbr;
+	size_t		len;
+
+	if (ft_strcmp("-9223372036854775808", str) == 0)
+		return (1);
+	nbr = ft_atoll(str);
+	len = ft_strlen(str);
+	if ((nbr == 0 && len != 1) || (nbr == -1 && len != 2))
+		return (-1);
+	return (1);
+}
+
+long long	exit_error_check(char **cmd)
+{
+	long long	ret_val;
+
+	ret_val = LLONG_MIN;
+	if (cmd[1] != NULL)
+	{
+		if (validate_str(cmd[1], "-+0123456789") == -1 \
+			|| is_overflown(cmd[1]) < 0)
+		{
+			print_builtin_error("exit", cmd[1], "numeric argument required", \
+				false);
+			return (2);
+		}
+		else
+			ret_val = ft_atoll(cmd[1]);
+	}
+	if (cmd[1] != NULL && cmd[2] != NULL)
+	{
+		print_builtin_error("exit", NULL, "too many arguments", false);
+		return (1);
+	}
+	return (ret_val);
 }

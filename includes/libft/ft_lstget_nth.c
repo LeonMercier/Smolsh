@@ -1,23 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.c                                       :+:      :+:    :+:   */
+/*   ft_lstget_nth.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mrahmat- <mrahmat-@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: lemercie <lemercie@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/27 13:57:01 by lemercie          #+#    #+#             */
-/*   Updated: 2024/11/14 18:37:12 by mrahmat-         ###   ########.fr       */
+/*   Created: 2024/11/18 16:00:40 by lemercie          #+#    #+#             */
+/*   Updated: 2024/11/18 17:22:48 by lemercie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./minishell.h"
+#include "libft.h"
 
-void	close_all(t_files files, int pipefd[2])
+// index starts at zero
+t_list	*ft_lstget_nth(t_list *lst, int n)
 {
-	if (files.infile > -1)
-		close(files.infile);
-	if (files.outfile > -1)
-		close(files.outfile);
-	close(pipefd[0]);
-	close(pipefd[1]);
+	if (!lst)
+		return (NULL);
+	while (n > 0)
+	{
+		if (!lst->next)
+			return (NULL);
+		lst = lst->next;
+		n--;
+	}
+	return (lst);
 }
